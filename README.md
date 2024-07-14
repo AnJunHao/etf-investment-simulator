@@ -1,8 +1,8 @@
 # ETF Investment Simulator
 
-![image-20240714125756713](E:\sync\Work\Lessons\2024-1\Bayno Intern\invest\README.assets\image-20240714125756713.png)
+![image-20240714125756713](https://github.com/AnJunHao/etf-investment-simulator/blob/main/README.assets/image-20240714125756713.png?raw=true)
 
-![image-20240714125831795](E:\sync\Work\Lessons\2024-1\Bayno Intern\invest\README.assets\image-20240714125831795.png)
+![image-20240714125831795](https://github.com/AnJunHao/etf-investment-simulator/blob/main/README.assets/image-20240714125831795.png?raw=true)
 
 ## Project Description
 
