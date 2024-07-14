@@ -1,0 +1,153 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+}
+
+h1 {
+    margin-top: 0;
+    color: #333;
+}
+
+#loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    position: relative;
+    text-align: center;
+    animation: rotate 2s infinite linear;
+}
+
+.double-bounce1, .double-bounce2 {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #007bff;
+    opacity: 0.6;
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: bounce 2s infinite ease-in-out;
+}
+
+.double-bounce2 {
+    animation-delay: -1s;
+}
+
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: scale(0); }
+    50% { transform: scale(1); }
+}
+
+#waiting-text {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: #555;
+}
+
+#result-text {
+    margin-top: 20px;
+    font-size: 1.5em;
+    color: #333;
+}
+
+#result-text span {
+    font-weight: bold;
+    font-size: 1.5em;
+    color: #007bff;
+}
+
+#additional-results {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.result-column {
+    flex: 1;
+    padding: 0 15px;
+    border-right: 1px solid #ddd;
+}
+
+.result-column:last-child {
+    border-right: none;
+}
+
+.result-column h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.result-column p {
+    margin: 10px 0;
+    color: #555;
+    cursor: pointer;
+    display: block; /* Ensure each paragraph is on its own line */
+}
+
+.result-column span {
+    font-weight: bold;
+    color: #007bff;
+    display: inline-block; /* Allow the span to be on the same line as the label */
+}
+
+.button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+#tooltip {
+    position: fixed;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    max-width: 200px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
