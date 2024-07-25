@@ -30,7 +30,7 @@ This Flask-based web application simulates ETF (Exchange-Traded Fund) investment
 
 2. Create a virtual environment and activate it:
    ```
-   python -m venv etf-investment-simulator
+   python -m venv venv
    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
    ```
 
