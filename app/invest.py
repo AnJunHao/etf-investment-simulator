@@ -1,21 +1,12 @@
 import pandas as pd
-from alpha_vantage.timeseries import TimeSeries
+from .data import get_local_data
 import numpy as np
 
 API_KEY = '4TQMXGUETS7505NZ'
 
 def simulate(etf_symbol, start_date, end_date, starting_principal, auto_invest_amount, investment_interval, frequency):
-    # Initialize Alpha Vantage API
-    ts = TimeSeries(key=API_KEY, output_format='pandas')
-    
-    # Fetch daily ETF data
-    data, meta_data = ts.get_daily(symbol=etf_symbol, outputsize='full')
-    
-    # Convert the index to datetime format
-    data.index = pd.to_datetime(data.index)
-    
-    # Sort data by date
-    data.sort_index(inplace=True)
+    # Fetch data from local storage
+    data = get_local_data(etf_symbol)
     
     # Filter data based on the provided date range
     data = data.loc[start_date:end_date]
