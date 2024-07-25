@@ -4,7 +4,7 @@ from alpha_vantage.timeseries import TimeSeries
 from datetime import datetime
 
 API_KEY = '4TQMXGUETS7505NZ'
-DATA_FOLDER = 'data'
+DATA_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
 ETF_SYMBOLS = [
     "SPY",
     "QQQ",
