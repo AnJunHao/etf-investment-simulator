@@ -76,6 +76,8 @@ project_root/
 │   └── static/
 │       ├── js/
 │       └── css/
+├── data/
+│   └── (CSV files for each ETF will be stored here)
 ├── run.py
 ├── .flaskenv
 ├── requirements.txt
