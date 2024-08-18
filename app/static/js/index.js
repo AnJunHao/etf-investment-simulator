@@ -95,6 +95,9 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(event) {
         event.preventDefault();
 
+        submitButton.disabled = true;
+        submitButton.textContent = 'Loading...';
+
         const formData = new FormData(event.target);
         const formObject = Object.fromEntries(formData.entries());
 
@@ -107,13 +110,14 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            const url = new URL(window.location.href);
-            url.pathname = '/result';
-            url.searchParams.set('request_id', data.request_id);
-            window.location.href = url.toString();
+            if (data.status === 'success') {
+                window.location.href = '/run_simulation';
+            }
         })
         .catch(error => {
             console.error('Error:', error);
+            submitButton.disabled = false;
+            submitButton.textContent = 'Simulate Returns';
         });
     });
 });

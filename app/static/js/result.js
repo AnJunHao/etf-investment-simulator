@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const requestId = new URLSearchParams(window.location.search).get('request_id');
     const loadingContainer = document.getElementById('loading-container');
     const resultContent = document.getElementById('result-content');
     const resultText = document.getElementById('result-text');
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkResult() {
-        fetch(`/check_result?request_id=${requestId}`)
+        fetch('/check_result')
         .then(response => response.json())
         .then(data => {
             if (data.status === 'pending') {

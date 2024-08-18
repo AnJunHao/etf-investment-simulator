@@ -1,54 +1,45 @@
-from flask import render_template, request, jsonify
-import threading
-import uuid
+from flask import render_template, request, jsonify, session, redirect, url_for
 from app import app
 from app import invest
 
-RESULTS = {}
+app.secret_key = 'your_secret_key_here'  # Replace with a real secret key
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-def simulate_investment(request_id, *args):
-    result_dict = invest.simulate(*args)
-    RESULTS[request_id] = result_dict
-
 @app.route('/simulate', methods=['POST'])
 def simulate():
     data = request.json
-    etf_symbol = data['etf_symbol']
-    start_date = data['start_date']
-    end_date = data['end_date']
-    starting_principal = float(data['starting_principal'])
-    auto_invest_amount = float(data['auto_invest_amount'])
-    investment_interval = data.get('investment_interval')
-    frequency = data['frequency']
+    session['simulation_params'] = data
+    return jsonify({"status": "success"})
 
-    request_id = str(uuid.uuid4())
-    threading.Thread(target=simulate_investment,
-                     args=(request_id,
-                           etf_symbol,
-                           start_date,
-                           end_date,
-                           starting_principal,
-                           auto_invest_amount,
-                           investment_interval,
-                           frequency
-                           )).start()
+@app.route('/run_simulation')
+def run_simulation():
+    params = session.get('simulation_params')
+    if not params:
+        return redirect(url_for('index'))
 
-    return jsonify({"request_id": request_id})
+    result_dict = invest.simulate(
+        params['etf_symbol'],
+        params['start_date'],
+        params['end_date'],
+        float(params['starting_principal']),
+        float(params['auto_invest_amount']),
+        params.get('investment_interval'),
+        params['frequency']
+    )
+    session['simulation_result'] = result_dict
+    return redirect(url_for('result'))
 
 @app.route('/result')
 def result():
-    request_id = request.args.get('request_id', '')
-    return render_template('result.html', request_id=request_id)
+    return render_template('result.html')
 
 @app.route('/check_result')
 def check_result():
-    request_id = request.args.get('request_id', '')
-    result = RESULTS.get(request_id)
+    result = session.get('simulation_result')
     if result is not None:
-        return jsonify(result)  # Return the entire result dictionary
+        return jsonify(result)
     else:
         return jsonify({"status": "pending"})
