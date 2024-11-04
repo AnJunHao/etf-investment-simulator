@@ -1,0 +1,116 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF Investment Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>ETF Investment Simulator</h1>
+        <form id="investment-form">
+            <div class="form-group">
+                <label for="etf-symbol">ETF Symbol
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The ETF you want to invest in.</span>
+                    </span>
+                </label>
+                <select id="etf-symbol" name="etf_symbol" required>
+                    <option value="" disabled selected>Select an ETF</option>
+                    <option value="SPY">SPY - SPDR S&P 500 ETF Trust</option>
+                    <option value="QQQ">QQQ - Invesco QQQ Trust (tracks Nasdaq-100)</option>
+                    <option value="DIA">DIA - SPDR Dow Jones Industrial Average ETF</option>
+                    <option value="VTI">VTI - Vanguard Total Stock Market ETF</option>
+                    <option value="IWM">IWM - iShares Russell 2000 ETF</option>
+                    <option value="EFA">EFA - iShares MSCI EAFE ETF (International Developed Markets)</option>
+                    <option value="VWO">VWO - Vanguard FTSE Emerging Markets ETF</option>
+                    <option value="GLD">GLD - SPDR Gold Shares ETF</option>
+                    <option value="AGG">AGG - iShares Core U.S. Aggregate Bond ETF</option>
+                    <option value="TLT">TLT - iShares 20+ Year Treasury Bond ETF</option>
+                    <option value="XLF">XLF - Financial Select Sector SPDR Fund</option>
+                    <option value="XLE">XLE - Energy Select Sector SPDR Fund</option>
+                    <option value="VNQ">VNQ - Vanguard Real Estate ETF</option>
+                    <option value="ARKK">ARKK - ARK Innovation ETF</option>
+                    <option value="IJH">IJH - iShares Core S&P Mid-Cap ETF</option>
+                </select>
+                <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="start-date">Start Date
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The date when you want to start the investment.</span>
+                    </span>
+                </label>
+                <input type="date" id="start-date" name="start_date" required>
+                <div id="start-date-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="end-date">End Date
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The date when you want to end the investment.</span>
+                    </span>
+                </label>
+                <input type="date" id="end-date" name="end_date" required>
+                <div id="date-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="starting-principal">Starting Principal ($)
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The initial amount you are investing.</span>
+                    </span>
+                </label>
+                <input type="number" id="starting-principal" name="starting_principal" min="0" step="1" required>
+                <div id="starting-principal-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="auto-invest-amount">Auto Invest Amount ($)
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The amount you will automatically invest at each interval.</span>
+                    </span>
+                </label>
+                <input type="number" id="auto-invest-amount" name="auto_invest_amount" min="0" step="1" required>
+                <div id="auto-invest-amount-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="frequency">Frequency
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">How often you want to invest (e.g., weekly).</span>
+                    </span>
+                </label>
+                <select id="frequency" name="frequency" required>
+                    <option value="" disabled selected>Select frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+                <div class="error-message"></div>
+            </div>
+            <div class="form-group hidden" id="interval-group">
+                <label for="investment-interval">Investment Interval
+                    <span class="tooltip" tabindex="0">?
+                        <span class="tooltiptext">The day of the week you want to invest.</span>
+                    </span>
+                </label>
+                <select id="investment-interval" name="investment_interval">
+                    <option value="" disabled selected>Select a day</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+                <div class="error-message"></div>
+            </div>
+            <button type="submit" class="button" id="submit-button" disabled>Simulate Returns</button>
+        </form>
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Investment Sets</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333333;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        /* Container Styling */
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 40px 20px;
+            margin: 0 auto;
+        }
+
+        /* New Flex Container for Table and Plot */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column; /* Stack vertically by default */
+            gap: 40px; /* Space between table and plot */
+        }
+
+        /* Metrics Table and Plot Containers */
+        .metrics-table-container,
+        .plot-container {
+            flex: 1 1 100%; /* Take full width by default */
+        }
+
+        /* Metrics Table Container with Header */
+        .metrics-table-container {
+            overflow-x: auto;
+            margin-bottom: 40px;
+            position: relative;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Header inside Metrics Table Container */
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .metrics-header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+
+        .metrics-header .buttons-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .metrics-header .buttons-group button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Add Set Button */
+        .add-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .add-button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Manage Metrics Button */
+        .manage-metrics-button {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .manage-metrics-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .manage-metrics-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Metrics Table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            border: none;
+            padding: 12px 15px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .metrics-table th {
+            background-color: #ecf0f1;
+            font-weight: 600;
+            color: #2c3e50;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .metrics-table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .metrics-table tbody tr:hover {
+            background-color: #e8f4fd;
+        }
+
+        .metrics-table td .set-block {
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #ffffff;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: bold;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .metrics-table td .set-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Plot Container */
+        .plot-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .plot-container h2 {
+            margin-bottom: 25px;
+            font-size: 26px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .plot-container canvas {
+            width: 100% !important;
+            height: 80vh !important;
+        }
+
+        /* Popup Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+
+        .modal-buttons {
+            text-align: right;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .save-button {
+            background-color: #2ecc71;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-button:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .save-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .cancel-button {
+            background-color: #95a5a6;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .cancel-button:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .cancel-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .delete-button:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .delete-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Metrics Selection Modal Specific Styles */
+        .metrics-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .metrics-list li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .metrics-list li input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .metrics-list li label {
+            font-weight: 500;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        /* Smooth Animations for Modals */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                gap: 30px;
+            }
+        }
+
+        /* Media Query for Larger Screens */
+        @media (min-width: 992px) { /* Adjust breakpoint as needed */
+            .content-wrapper {
+                flex-direction: row; /* Place side by side */
+                gap: 20px; /* Smaller gap */
+            }
+
+            .metrics-table-container,
+            .plot-container {
+                flex: 1 1 50%; /* Each takes 50% width */
+                min-width: 300px; /* Prevent too small widths */
+            }
+
+            .plot-container {
+                height: auto; /* Adjust height if necessary */
+            }
+
+            .plot-container canvas {
+                height: 60vh !important; /* Adjust as needed */
+            }
+        }
+
+        /* Optional Enhancements */
+
+        /* Ensure the container doesn't overflow on smaller screens */
+        .metrics-table-container {
+            max-width: 100%;
+        }
+
+        .plot-container {
+            max-width: 100%;
+        }
+
+        /* Improve responsiveness of the table */
+        .metrics-table-container table {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="content-wrapper">
+            <!-- Metrics Table Container with Header and Buttons -->
+            <div class="metrics-table-container">
+                <div class="metrics-header">
+                    <h1>Compare Metrics</h1>
+                    <div class="buttons-group">
+                        <button class="add-button" id="add-set-button">+ Add</button>
+                        <button class="manage-metrics-button" id="manage-metrics-button">Metrics</button>
+                    </div>
+                </div>
+                <table class="metrics-table" id="metrics-table">
+                    <thead>
+                        <tr id="table-headers">
+                            <!-- Headers will be dynamically inserted here -->
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Set rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Plot Area -->
+            <div class="plot-container">
+                <h2>Profit Percentage Over Time</h2>
+                <canvas id="investment-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Set Modal -->
+    <div id="set-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="modal-close">&times;</span>
+            <h3 id="modal-title">Add New Set</h3>
+            <div class="form-group">
+                <label for="set-name">Set Name</label>
+                <input type="text" id="set-name" placeholder="e.g., Set 03" required>
+            </div>
+            <div class="form-group">
+                <label for="etf-symbol">ETF Symbol</label>
+                <select id="etf-symbol" required>
+                    <option value="" disabled selected>Select an ETF</option>
+                    <option value="SPY">SPY - SPDR S&P 500 ETF Trust</option>
+                    <option value="QQQ">QQQ - Invesco QQQ Trust (tracks Nasdaq-100)</option>
+                    <option value="DIA">DIA - SPDR Dow Jones Industrial Average ETF</option>
+                    <option value="VTI">VTI - Vanguard Total Stock Market ETF</option>
+                    <option value="IWM">IWM - iShares Russell 2000 ETF</option>
+                    <option value="EFA">EFA - iShares MSCI EAFE ETF (International Developed Markets)</option>
+                    <option value="VWO">VWO - Vanguard FTSE Emerging Markets ETF</option>
+                    <option value="GLD">GLD - SPDR Gold Shares ETF</option>
+                    <option value="AGG">AGG - iShares Core U.S. Aggregate Bond ETF</option>
+                    <option value="TLT">TLT - iShares 20+ Year Treasury Bond ETF</option>
+                    <option value="XLF">XLF - Financial Select Sector SPDR Fund</option>
+                    <option value="XLE">XLE - Energy Select Sector SPDR Fund</option>
+                    <option value="VNQ">VNQ - Vanguard Real Estate ETF</option>
+                    <option value="ARKK">ARKK - ARK Innovation ETF</option>
+                    <option value="IJH">IJH - iShares Core S&P Mid-Cap ETF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="start-date">Start Date</label>
+                <input type="date" id="start-date" required>
+            </div>
+            <div class="form-group">
+                <label for="end-date">End Date</label>
+                <input type="date" id="end-date" required>
+            </div>
+            <div class="form-group">
+                <label for="starting-principal">Starting Principal ($)</label>
+                <input type="number" id="starting-principal" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+                <label for="auto-invest-amount">Auto Invest Amount ($)</label>
+                <input type="number" id="auto-invest-amount" min="0" step="1" required>
+            </div>
+            <div class="form-group">
+                <label for="frequency">Frequency</label>
+                <select id="frequency" required>
+                    <option value="" disabled selected>Select frequency</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+            <div class="form-group" id="investment-interval-group" style="display: none;">
+                <label for="investment-interval">Investment Interval</label>
+                <select id="investment-interval">
+                    <option value="" disabled selected>Select a day</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="cancel-button" id="modal-cancel">Cancel</button>
+                <button class="save-button" id="modal-save">Save</button>
+                <button class="delete-button" id="modal-delete" style="display: none;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Metrics Modal -->
+    <div id="metrics-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="metrics-modal-close">&times;</span>
+            <h3>Manage Metrics</h3>
+            <ul class="metrics-list" id="metrics-list">
+                <!-- Metrics checkboxes will be dynamically inserted here -->
+            </ul>
+            <div class="modal-buttons">
+                <button class="cancel-button" id="metrics-modal-cancel">Cancel</button>
+                <button class="save-button" id="metrics-modal-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Color palette for sets
+        const COLORS = [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40',
+            '#E7E9ED',
+            '#8A2BE2',
+            '#00CED1',
+            '#FF1493'
+        ];
+
+        let colorIndex = 0;
+        let sets = [];
+        let baseSet = null;
+        let chart = null;
+
+        // Global Counter for Unique Set Names
+        let setCounter = 1;
+
+        // Modal Elements
+        const setModal = document.getElementById('set-modal');
+        const setModalClose = document.getElementById('modal-close');
+        const setModalTitle = document.getElementById('modal-title');
+        const setModalSave = document.getElementById('modal-save');
+        const setModalCancel = document.getElementById('modal-cancel');
+        const setModalDelete = document.getElementById('modal-delete');
+
+        // Metrics Modal Elements
+        const metricsModal = document.getElementById('metrics-modal');
+        const metricsModalClose = document.getElementById('metrics-modal-close');
+        const metricsModalCancel = document.getElementById('metrics-modal-cancel');
+        const metricsModalSave = document.getElementById('metrics-modal-save');
+        const metricsList = document.getElementById('metrics-list');
+
+        // Form Elements
+        const setNameInput = document.getElementById('set-name');
+        const etfSymbolSelect = document.getElementById('etf-symbol');
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const startingPrincipalInput = document.getElementById('starting-principal');
+        const autoInvestAmountInput = document.getElementById('auto-invest-amount');
+        const frequencySelect = document.getElementById('frequency');
+        const investmentIntervalGroup = document.getElementById('investment-interval-group');
+        const investmentIntervalSelect = document.getElementById('investment-interval');
+
+        // Buttons
+        const addSetButton = document.getElementById('add-set-button');
+        const manageMetricsButton = document.getElementById('manage-metrics-button');
+
+        // Tables
+        const tableHeaders = document.getElementById('table-headers');
+        const tableBody = document.getElementById('table-body');
+
+        // Chart Canvas
+        const chartCanvasCtx = document.getElementById('investment-chart').getContext('2d');
+
+        // Currently Editing Set
+        let editingSetId = null;
+
+        // Selected Metrics
+        let selectedMetrics = ['profit_percentage_overall'];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadBaseSet();
+            initializeSetCounter();
+            initializeChart();
+            updateMetricsTable();
+            updateChart();
+        });
+
+        // Load base set from backend
+        async function loadBaseSet() {
+            try {
+                const response = await fetch('/get_base');
+                const data = await response.json();
+                if (response.ok) {
+                    const baseParams = data.base_params;
+                    // Simulate the base set
+                    const simulation = await simulateSet(baseParams);
+                    if (!simulation) return;
+
+                    baseSet = {
+                        id: generateId(),
+                        name: 'Base Set',
+                        params: baseParams,
+                        color: getNextColor(),
+                        simulation: simulation
+                    };
+                    sets.push(baseSet);
+                } else {
+                    alert(`Error loading base set: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error loading base set:', error);
+                alert('Failed to load base set.');
+            }
+        }
+
+        // Generate unique ID for sets
+        function generateId() {
+            return 'set-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Get next color from palette
+        function getNextColor() {
+            const color = COLORS[colorIndex % COLORS.length];
+            colorIndex++;
+            return color;
+        }
+
+        // Simulate a set using /simulate endpoint
+        async function simulateSet(params) {
+            try {
+                const response = await fetch('/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    return data;
+                } else {
+                    alert(`Simulation error: ${data.error}`);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Simulation error:', error);
+                alert('Failed to simulate investment.');
+                return null;
+            }
+        }
+
+        // Initialize Chart.js
+        function initializeChart() {
+            chart = new Chart(chartCanvasCtx, {
+                type: 'line',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false,
+                    },
+                    plugins: {
+                        title: {
+                            display: false,
+                            text: 'Profit Percentage Over Time'
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                            titleFont: {
+                                family: 'Segoe UI',
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: 'Segoe UI',
+                                size: 12
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    family: 'Segoe UI',
+                                    size: 14
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'month',
+                                tooltipFormat: 'YYYY-MM-DD',
+                                displayFormats: {
+                                    day: 'YYYY-MM-DD',
+                                    month: 'YYYY-MM'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                font: {
+                                    family: 'Segoe UI',
+                                    size: 16,
+                                    weight: '600'
+                                },
+                                color: '#2c3e50'
+                            },
+                            ticks: {
+                                source: 'auto',
+                                color: '#34495e',
+                                font: {
+                                    family: 'Segoe UI',
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: '#ecf0f1'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Profit (%)',
+                                font: {
+                                    family: 'Segoe UI',
+                                    size: 16,
+                                    weight: '600'
+                                },
+                                color: '#2c3e50'
+                            },
+                            ticks: {
+                                color: '#34495e',
+                                font: {
+                                    family: 'Segoe UI',
+                                    size: 12
+                                },
+                                beginAtZero: true
+                            },
+                            grid: {
+                                color: '#ecf0f1'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Lighten Color Function (to create lighter background)
+        function lightenColor(color, luminosity) {
+            // Convert hex color to RGB
+            let rgb = "#", c;
+            for (let i = 1; i < 7; i += 2) {
+                c = parseInt(color.substr(i, 2), 16);
+                c = Math.round(Math.min(Math.max(0, c + (c * luminosity)), 255)).toString(16);
+                rgb += ("00" + c).substr(c.length);
+            }
+            return rgb;
+        }
+
+        // Render Sets in the Table
+        function renderSets() {
+            tableBody.innerHTML = '';
+            sets.forEach(set => {
+                const row = document.createElement('tr');
+
+                // Set Name Cell
+                const setNameCell = document.createElement('td');
+                const setBlock = document.createElement('div');
+                setBlock.classList.add('set-block');
+                setBlock.style.backgroundColor = set.color;
+                setBlock.textContent = set.name;
+                setBlock.addEventListener('click', () => openEditModal(set.id));
+                setNameCell.appendChild(setBlock);
+                row.appendChild(setNameCell);
+
+                // Metrics Cells based on selectedMetrics
+                selectedMetrics.forEach(metric => {
+                    const metricCell = document.createElement('td');
+                    let value = set.simulation[metric];
+                    if (typeof value === 'number') {
+                        value = value.toFixed(2);
+                    } else {
+                        value = value || 'N/A';
+                    }
+                    metricCell.textContent = value;
+                    row.appendChild(metricCell);
+                });
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update Metrics Table Headers and Render Sets
+        function updateMetricsTable() {
+            // Determine all unique metrics across sets
+            const metricsSet = new Set();
+            sets.forEach(set => {
+                for (const key in set.simulation) {
+                    if (key !== 'plot_data') {
+                        metricsSet.add(key);
+                    }
+                }
+            });
+
+            const metricsArray = Array.from(metricsSet);
+
+            // Ensure 'profit_percentage_overall' is included
+            if (!metricsArray.includes('profit_percentage_overall')) {
+                metricsArray.push('profit_percentage_overall');
+            }
+
+            // Render Headers
+            tableHeaders.innerHTML = '';
+            const setHeader = document.createElement('th');
+            setHeader.textContent = 'Investment Sets';
+            tableHeaders.appendChild(setHeader);
+
+            selectedMetrics.forEach(metric => {
+                if (metricsSet.has(metric)) {
+                    const th = document.createElement('th');
+                    th.textContent = formatMetricName(metric);
+                    tableHeaders.appendChild(th);
+                }
+            });
+
+            // Render Rows
+            renderSets();
+        }
+
+        // Get all unique metrics from existing sets
+        function getAllMetrics() {
+            const metricsSet = new Set();
+            sets.forEach(set => {
+                for (const key in set.simulation) {
+                    if (key !== 'plot_data') {
+                        metricsSet.add(key);
+                    }
+                }
+            });
+            return Array.from(metricsSet);
+        }
+
+        // Format metric names from snake_case to Capitalized Words
+        function formatMetricName(metric) {
+            return metric.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        // Update Chart with current sets
+        function updateChart() {
+            // Collect all unique dates across all sets
+            let allDatesSet = new Set();
+            sets.forEach(set => {
+                if (set.simulation && set.simulation.plot_data && set.simulation.plot_data.dates) {
+                    set.simulation.plot_data.dates.forEach(date => allDatesSet.add(date));
+                }
+            });
+
+            // Convert Set to sorted array
+            let allDates = Array.from(allDatesSet);
+            allDates.sort((a, b) => new Date(a) - new Date(b));
+
+            // Set X-Axis Range
+            chart.options.scales.x.time.min = allDates.length > 0 ? moment(allDates[0]).toDate() : undefined;
+            chart.options.scales.x.time.max = allDates.length > 0 ? moment(allDates[allDates.length - 1]).toDate() : undefined;
+
+            // Prepare datasets with {x: date, y: value} format
+            chart.data.datasets = sets.map(set => {
+                let dataPoints = [];
+                if (set.simulation && set.simulation.plot_data && set.simulation.plot_data.dates) {
+                    for (let i = 0; i < set.simulation.plot_data.dates.length; i++) {
+                        dataPoints.push({
+                            x: set.simulation.plot_data.dates[i],
+                            y: set.simulation.plot_data.profit_percentages[i]
+                        });
+                    }
+                }
+                return {
+                    label: set.name,
+                    data: dataPoints,
+                    borderColor: set.color,
+                    backgroundColor: set.color,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                };
+            });
+
+            chart.update();
+        }
+
+        // Open Add Modal Function
+        addSetButton.addEventListener('click', () => {
+            openAddModal();
+        });
+
+        function openAddModal() {
+            editingSetId = null;
+            setModalTitle.textContent = 'Add New Set';
+            setModalDelete.style.display = 'none';
+            const defaultName = getNextSetName();
+            populateSetModalFields(baseSet.params, defaultName);
+            investmentIntervalGroup.style.display = shouldShowInvestmentInterval(baseSet.params.frequency) ? 'block' : 'none';
+            setModal.style.display = 'block';
+        }
+
+        // Open Edit Modal Function
+        function openEditModal(setId) {
+            const set = sets.find(s => s.id === setId);
+            if (!set) return;
+            editingSetId = setId;
+            setModalTitle.textContent = 'Edit Set';
+            setModalDelete.style.display = 'inline-block';
+            populateSetModalFields(set.params, set.name);
+            investmentIntervalGroup.style.display = shouldShowInvestmentInterval(set.params.frequency) ? 'block' : 'none';
+            setModal.style.display = 'block';
+        }
+
+        // Populate Set Modal Fields
+        function populateSetModalFields(params, name) {
+            setNameInput.value = name || '';
+            etfSymbolSelect.value = params.etf_symbol || '';
+            startDateInput.value = params.start_date || '';
+            endDateInput.value = params.end_date || '';
+            startingPrincipalInput.value = params.starting_principal || '';
+            autoInvestAmountInput.value = params.auto_invest_amount || '';
+            frequencySelect.value = params.frequency || '';
+            investmentIntervalSelect.value = params.investment_interval || '';
+        }
+
+        // Close Set Modal Function
+        setModalClose.addEventListener('click', closeSetModal);
+        setModalCancel.addEventListener('click', closeSetModal);
+
+        function closeSetModal() {
+            setModal.style.display = 'none';
+            clearSetModalFields();
+        }
+
+        // Clear Set Modal Fields
+        function clearSetModalFields() {
+            setNameInput.value = '';
+            etfSymbolSelect.value = '';
+            startDateInput.value = '';
+            endDateInput.value = '';
+            startingPrincipalInput.value = '';
+            autoInvestAmountInput.value = '';
+            frequencySelect.value = '';
+            investmentIntervalSelect.value = '';
+            investmentIntervalGroup.style.display = 'none';
+        }
+
+        // Handle Frequency Change in Set Modal
+        frequencySelect.addEventListener('change', () => {
+            if (shouldShowInvestmentInterval(frequencySelect.value)) {
+                investmentIntervalGroup.style.display = 'block';
+                investmentIntervalSelect.required = true;
+            } else {
+                investmentIntervalGroup.style.display = 'none';
+                investmentIntervalSelect.required = false;
+                investmentIntervalSelect.value = '';
+            }
+        });
+
+        // Determine if Investment Interval Should be Shown
+        function shouldShowInvestmentInterval(frequency) {
+            return frequency === 'weekly' || frequency === 'bi-weekly';
+        }
+
+        // Save Button in Set Modal
+        setModalSave.addEventListener('click', async () => {
+            const params = getSetModalParams();
+            let name = setNameInput.value.trim() || '';
+
+            if (!name && !editingSetId) {
+                name = getNextSetName();
+            }
+
+            if (!validateSetParams(params)) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+
+            // Simulate the set
+            const simulation = await simulateSet(params);
+            if (!simulation) return;
+
+            if (editingSetId) {
+                // Edit existing set
+                const setIndex = sets.findIndex(s => s.id === editingSetId);
+                if (setIndex !== -1) {
+                    sets[setIndex].name = name;
+                    sets[setIndex].params = params;
+                    sets[setIndex].simulation = simulation;
+                }
+            } else {
+                // Add new set
+                const newSet = {
+                    id: generateId(),
+                    name: name,
+                    params: params,
+                    color: getNextColor(),
+                    simulation: simulation
+                };
+                sets.push(newSet);
+            }
+
+            // Update UI
+            updateMetricsTable();
+            updateChart();
+            closeSetModal();
+        });
+
+        // Delete Button in Set Modal
+        setModalDelete.addEventListener('click', () => {
+            if (!editingSetId) return;
+            const confirmDelete = confirm('Are you sure you want to delete this set?');
+            if (!confirmDelete) return;
+
+            sets = sets.filter(s => s.id !== editingSetId);
+            updateMetricsTable();
+            updateChart();
+            closeSetModal();
+        });
+
+        // Get Params from Set Modal Fields
+        function getSetModalParams() {
+            return {
+                etf_symbol: etfSymbolSelect.value,
+                start_date: startDateInput.value,
+                end_date: endDateInput.value,
+                starting_principal: parseFloat(startingPrincipalInput.value),
+                auto_invest_amount: parseFloat(autoInvestAmountInput.value),
+                investment_interval: investmentIntervalSelect.value || '',
+                frequency: frequencySelect.value
+            };
+        }
+
+        // Validate Set Params
+        function validateSetParams(params) {
+            if (!params.etf_symbol ||
+                !params.start_date ||
+                !params.end_date ||
+                isNaN(params.starting_principal) ||
+                isNaN(params.auto_invest_amount) ||
+                !params.frequency) {
+                return false;
+            }
+            if (shouldShowInvestmentInterval(params.frequency) && !params.investment_interval) {
+                return false;
+            }
+            const startDate = new Date(params.start_date);
+            const endDate = new Date(params.end_date);
+            return startDate < endDate;
+        }
+
+        // Function to get the next unique set name
+        function getNextSetName() {
+            // Retrieve the counter from localStorage if available
+            let storedCounter = localStorage.getItem('setCounter');
+            if (storedCounter) {
+                setCounter = parseInt(storedCounter, 10);
+            }
+
+            const name = 'Set ' + String(setCounter).padStart(2, '0');
+            setCounter++;
+            localStorage.setItem('setCounter', setCounter);
+            return name;
+        }
+
+        // Initialize the setCounter based on existing sets after loading
+        function initializeSetCounter() {
+            // After loading base set and any pre-existing sets, determine the next counter value
+            let maxSetNumber = 0;
+            sets.forEach(set => {
+                const match = set.name.match(/^Set (\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxSetNumber) {
+                        maxSetNumber = num;
+                    }
+                }
+            });
+            setCounter = maxSetNumber + 1;
+            localStorage.setItem('setCounter', setCounter);
+        }
+
+        /* ------------------ Manage Metrics Feature Starts Here ------------------ */
+
+        // Manage Metrics Button Event Listener
+        manageMetricsButton.addEventListener('click', () => {
+            openMetricsModal();
+        });
+
+        // Open Metrics Modal Function
+        function openMetricsModal() {
+            populateMetricsModal();
+            metricsModal.style.display = 'block';
+        }
+
+        // Close Metrics Modal Function
+        metricsModalClose.addEventListener('click', closeMetricsModal);
+        metricsModalCancel.addEventListener('click', closeMetricsModal);
+
+        function closeMetricsModal() {
+            metricsModal.style.display = 'none';
+            clearMetricsModal();
+        }
+
+        // Populate Metrics Modal with Checkbox List
+        function populateMetricsModal() {
+            metricsList.innerHTML = '';
+            const allMetrics = getAllMetrics();
+            allMetrics.forEach(metric => {
+                const li = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `metric-${metric}`;
+                checkbox.value = metric;
+                if (selectedMetrics.includes(metric)) {
+                    checkbox.checked = true;
+                }
+                // Optionally, keep 'profit_percentage_overall' always checked and disabled
+                if (metric === 'profit_percentage_overall') {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+
+                const label = document.createElement('label');
+                label.htmlFor = `metric-${metric}`;
+                label.textContent = formatMetricName(metric);
+
+                li.appendChild(checkbox);
+                li.appendChild(label);
+                metricsList.appendChild(li);
+            });
+        }
+
+        // Clear Metrics Modal (optional)
+        function clearMetricsModal() {
+            // No specific fields to clear in this modal
+        }
+
+        // Save Button in Metrics Modal
+        metricsModalSave.addEventListener('click', () => {
+            const checkboxes = metricsList.querySelectorAll('input[type="checkbox"]');
+            const newSelectedMetrics = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    newSelectedMetrics.push(cb.value);
+                }
+            });
+            // Ensure 'profit_percentage_overall' is always included
+            if (!newSelectedMetrics.includes('profit_percentage_overall')) {
+                newSelectedMetrics.push('profit_percentage_overall');
+            }
+            selectedMetrics = newSelectedMetrics;
+            updateMetricsTable();
+            closeMetricsModal();
+        });
+
+        /* ------------------ Manage Metrics Feature Ends Here ------------------ */
+
+    </script>
+</body>
+
+</html>
