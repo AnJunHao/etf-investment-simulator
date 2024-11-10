@@ -7,7 +7,7 @@ from functools import lru_cache
 
 MAX_DATA_POINTS = 50
 
-@lru_cache(maxsize=1000)
+@lru_cache(maxsize=10000)
 def simulate(etf_symbol: str,
              start_date: str,
              end_date: str,
@@ -65,8 +65,12 @@ def simulate(etf_symbol: str,
     if frequency == 'daily':
         investment_dates = pd.date_range(start=start_date, end=end_date, freq='B')  # Business days
     elif frequency == 'weekly':
+        if investment_interval is None:
+            raise ValueError("Investment interval is required for weekly frequency.")
         investment_dates = pd.date_range(start=start_date, end=end_date, freq='W-' + investment_interval[:3])
     elif frequency == 'bi-weekly':
+        if investment_interval is None:
+            raise ValueError("Investment interval is required for bi-weekly frequency.")
         investment_dates = pd.date_range(start=start_date, end=end_date, freq='2W-' + investment_interval[:3])
     elif frequency == 'monthly':
         investment_dates = pd.date_range(start=start_date, end=end_date, freq='ME')

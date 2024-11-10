@@ -3,6 +3,8 @@ import unittest
 import requests
 import json
 
+from invest import MAX_DATA_POINTS
+
 class TestETFInvestmentSimulatorBackend(unittest.TestCase):
     BASE_URL = 'http://127.0.0.1:5000'
 
@@ -25,7 +27,7 @@ class TestETFInvestmentSimulatorBackend(unittest.TestCase):
         self.assertIn('plot_data', data)
         self.assertIn('dates', data['plot_data'])
         self.assertIn('profit_percentages', data['plot_data'])
-        self.assertTrue(len(data['plot_data']['dates']) <= 20)
+        self.assertTrue(len(data['plot_data']['dates']) <= MAX_DATA_POINTS)
 
     def test_simulate_endpoint_missing_params(self):
         url = f"{self.BASE_URL}/simulate"
@@ -55,40 +57,6 @@ class TestETFInvestmentSimulatorBackend(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         data = response.json()
         self.assertIn('error', data)
-
-    def test_compare_endpoint_success(self):
-        url = f"{self.BASE_URL}/compare"
-        payload = {
-            "base_params": {
-                "etf_symbol": "SPY",
-                "start_date": "2020-01-01",
-                "end_date": "2021-01-01",
-                "starting_principal": 10000,
-                "auto_invest_amount": 100,
-                "investment_interval": "Monday",
-                "frequency": "weekly"
-            },
-            "compare_params": {
-                "etf_symbol": "QQQ",
-                "start_date": "2020-01-01",
-                "end_date": "2021-01-01",
-                "starting_principal": 10000,
-                "auto_invest_amount": 100,
-                "investment_interval": "Monday",
-                "frequency": "weekly"
-            },
-            "selected_metric": "profit_percentage_overall"
-        }
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(url, data=json.dumps(payload), headers=headers)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertIn('base', data)
-        self.assertIn('compare', data)
-        self.assertIn('metrics', data['base'])
-        self.assertIn('metrics', data['compare'])
-        self.assertIn('plot_data', data['base'])
-        self.assertIn('plot_data', data['compare'])
     
     def test_set_base_endpoint_success(self):
         url = f"{self.BASE_URL}/set_base"

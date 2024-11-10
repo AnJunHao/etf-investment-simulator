@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from alpha_vantage.timeseries import TimeSeries
+from typing import Any
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'data')
 ETF_SYMBOLS = [
@@ -21,7 +22,7 @@ ETF_SYMBOLS = [
     "IJH"
 ]
 
-def fetch_and_store_data(etf_symbols=ETF_SYMBOLS):
+def fetch_and_store_data(etf_symbols: list[str] = ETF_SYMBOLS) -> None:
     """
     Fetch data for given ETF symbols and store as CSV files.
     """
@@ -32,7 +33,7 @@ def fetch_and_store_data(etf_symbols=ETF_SYMBOLS):
 
     for symbol in etf_symbols:
         try:
-            data, _ = ts.get_daily(symbol=symbol, outputsize='full')
+            data: Any = ts.get_daily(symbol=symbol, outputsize='full')[0]
             data.index = pd.to_datetime(data.index)
             data.sort_index(inplace=True)
             
@@ -42,7 +43,7 @@ def fetch_and_store_data(etf_symbols=ETF_SYMBOLS):
         except Exception as e:
             print(f"Error fetching data for {symbol}: {str(e)}")
 
-def get_local_data(etf_symbol=ETF_SYMBOLS):
+def get_local_data(etf_symbol: str) -> pd.DataFrame:
     """
     Read data from local storage for a given ETF symbol.
     """
@@ -54,7 +55,7 @@ def get_local_data(etf_symbol=ETF_SYMBOLS):
     data = pd.read_csv(file_path, index_col=0, parse_dates=True)
     return data
 
-def update_local_data(etf_symbols=ETF_SYMBOLS):
+def update_local_data(etf_symbols: list[str] = ETF_SYMBOLS) -> None:
     """
     Update local data for given ETF symbols.
     """
@@ -68,7 +69,7 @@ def update_local_data(etf_symbols=ETF_SYMBOLS):
             last_date = local_data.index.max()
             
             try:
-                new_data, _ = ts.get_daily(symbol=symbol, outputsize='compact')
+                new_data: Any = ts.get_daily(symbol=symbol, outputsize='compact')[0]
                 new_data.index = pd.to_datetime(new_data.index)
                 new_data = new_data[new_data.index > last_date]
                 
